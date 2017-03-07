@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup, SoupStrainer
-from MarkovChainer import TrainAndSaveString
+from MarkovMaker import TrainAndSaveString
 import urllib, os
 
 """
@@ -45,22 +45,23 @@ Scripty script
 
 
 CATEGORIES = set()
-while (len(CATEGORIES) < 10000):
-    link = urllib.request.urlopen('https://en.wikipedia.org/wiki/Special:Random')
+while (len(CATEGORIES) < 1):
+    link = urllib.request.urlopen('https://en.wikipedia.org/wiki/AdolfHitler')
     soup = BeautifulSoup(link, 'lxml')
 
     for cat in soup.find('div', {'id': 'catlinks'}).find('ul').findAll('li'):
         if cat.string not in CATEGORIES:
             cattext = ''
             for link in scrape_category_page('https://en.wikipedia.org' + cat.find('a')['href']):
-                cattext = scrape(link)
-            TrainAndSaveString(cattext, cat.string)
-            """
-            filename = './Categories/' + cat.string + '.txt'
-            os.makedirs(os.path.dirname(filename), exist_ok=True)
-            with open(filename, 'w') as file:
-                file.write(cattext)
-            """
+                cattext = cattext + "\n" + scrape(link)
+            print (cat.string)
+            TrainAndSaveString(cattext, './Categories/' + cat.string + '.mc')
+            
+            #filename = './Categories/' + cat.string + '.txt'
+            #os.makedirs(os.path.dirname(filename), exist_ok=True)
+            #with open(filename, 'w') as file:
+            #    file.write(cattext)
+            
             CATEGORIES.add(cat.string)
             
 print (CATEGORIES)
