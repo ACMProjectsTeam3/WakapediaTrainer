@@ -46,7 +46,7 @@ Scripty script
 
 CATEGORIES = set()
 while (len(CATEGORIES) < 1):
-    link = urllib.request.urlopen('https://en.wikipedia.org/wiki/AdolfHitler')
+    link = urllib.request.urlopen('https://en.wikipedia.org/wiki/Adolf_Hitler')
     soup = BeautifulSoup(link, 'lxml')
 
     for cat in soup.find('div', {'id': 'catlinks'}).find('ul').findAll('li'):
@@ -63,5 +63,6 @@ while (len(CATEGORIES) < 1):
             #    file.write(cattext)
             
             CATEGORIES.add(cat.string)
-            
+
+
 print (CATEGORIES)
