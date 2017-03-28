@@ -45,7 +45,7 @@ Scripty script
 
 
 CATEGORIES = set()
-while (len(CATEGORIES) < 10)
+while (len(CATEGORIES) < 10):
     link = urllib.request.urlopen('https://en.wikipedia.org/wiki/Special:Random')
     soup = BeautifulSoup(link, 'lxml')
 
