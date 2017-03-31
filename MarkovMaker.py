@@ -6,6 +6,8 @@ import language_check
 import random
 import json
 import os
+import random
+from random import randint
 
 
 class POSifiedText(markovify.Text):
@@ -43,23 +45,29 @@ class EditedTextClass(POSifiedText):
 
 
 
-def CreateSentences(FILE_PATH_OF_OLDSTUFF, NUMSENTENCES): #definition to generate text. First parameter is the file-path to the .txt file you'll be using to train the model, the second parameter is how many sentences you want out of the markov model.
+def CreateSentences(Bundle): #definition to generate text. First parameter is the file-path to the .txt file you'll be using to train the model, the second parameter is how many sentences you want out of the markov model.
+	FILE_PATH_OF_OLDSTUFF = random.choice(Bundle.categories)
+	FILE_PATH_OF_OLDSTUFF = "%s.txt" % FILE_PATH_OF_OLDSTUFF
 	with open(FILE_PATH_OF_OLDSTUFF) as json_file:  
 		model2_json = json.load(json_file)
 	NEW_MODEL = EditedTextClass.from_json(model2_json)
 	tool = language_check.LanguageTool('en-GB')
-	text = ""
-	for i in range(NUMSENTENCES): #creates 'NUMSENTENCES' sentence, where NUMSENTENCES is an integer
-		text = NEW_MODEL.make_sentence(tries = 1) #this, along with the next while loop, basically just forces the markov model to try an infinite number of times to have SOMETHING come out. 
-		while (text == None): 
-			text = NEW_MODEL.make_sentence(tries = 1)
-		matches = tool.check(text) #checks the grammar of the generated text
-		text = language_check.correct(text, matches) #corrects any mistakes the grammar checker found in the text
-		print (" ", end = "")
-		print (text, end="") #prints text. The 'end' is just there to ensure that no new line is created
-		NewLine = random.randint(0,30) #there is a 10% chance that a new line is created every time a sentence is created. This just makes the generated text not a huge block, and a little more natural looking 
-		if NewLine == 1 or NewLine == 2 or NewLine == 3:
-			print ("\n")
+	Text = ""
+	paragraphText = ""
+	for key in Bundle.paragraphs:
+		NumberOfSentences = random.randint(1,15)
+		for i in range(NumberOfSentences): #creates 'NUMSENTENCES' sentence, where NUMSENTENCES is an integer
+			Text = NEW_MODEL.make_sentence(tries = 1) #this, along with the next while loop, basically just forces the markov model to try an infinite number of times to have SOMETHING come out. 
+			while (Text == None): 
+				Text = NEW_MODEL.make_sentence(tries = 1)
+			matches = tool.check(Text) #checks the grammar of the generated text
+			paragraphText += language_check.correct(Text, matches) #corrects any mistakes the grammar checker found in the text
+		Bundle.paragraphs(key) = paragraphText
+		paragraphText = ""
+	return Bundle
+		
+		
+		
 
 
 
