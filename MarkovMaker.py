@@ -45,12 +45,19 @@ class EditedTextClass(POSifiedText):
 
 
 
-def CreateSentences(Bundle): #definition to generate text. First parameter is the file-path to the .txt file you'll be using to train the model, the second parameter is how many sentences you want out of the markov model.
-	FILE_PATH_OF_OLDSTUFF = random.choice(Bundle.categories)
-	FILE_PATH_OF_OLDSTUFF = "Categories/%s.mc" % FILE_PATH_OF_OLDSTUFF
-	with open(FILE_PATH_OF_OLDSTUFF) as json_file:  
-		model2_json = json.load(json_file)
-	NEW_MODEL = EditedTextClass.from_json(model2_json)
+def CreateSentences(Bundle): #definition to generate text. Firstword = word.replace(letter,"!") parameter is the file-path to the .txt file you'll be using to train the model, the second parameter is how many sentences you want out of the markov model.
+	NEW_MODEL = None
+	for x in Bundle.categories:
+		FILE_PATH_OF_OLDSTUFF = x
+		FILE_PATH_OF_OLDSTUFF = FILE_PATH_OF_OLDSTUFF[FILE_PATH_OF_OLDSTUFF.find("Category:") + 9:]
+		for letter in FILE_PATH_OF_OLDSTUFF:
+			if letter == ' ':
+				FILE_PATH_OF_OLDSTUFF = FILE_PATH_OF_OLDSTUFF.replace(letter,"_")
+		FILE_PATH_OF_OLDSTUFF = "Categories/%s.mc" % FILE_PATH_OF_OLDSTUFF
+		with open(FILE_PATH_OF_OLDSTUFF) as json_file:  
+			model2_json = json.load(json_file)
+		OLD_MODEL = EditedTextClass.from_json(model2_json)
+		NEW_MODEL = markovify.combine(OLD_MODEL, NEW_MODEL)
 	tool = language_check.LanguageTool('en-GB')
 	Text = ""
 	paragraphText = ""
@@ -62,10 +69,10 @@ def CreateSentences(Bundle): #definition to generate text. First parameter is th
 				Text = NEW_MODEL.make_sentence(tries = 1)
 			matches = tool.check(Text) #checks the grammar of the generated text
 			paragraphText += language_check.correct(Text, matches) #corrects any mistakes the grammar checker found in the text
+			paragraphText += " "
 		Bundle.paragraphs[key] = paragraphText
 		paragraphText = ""
 	return Bundle
-		
 		
 		
 
