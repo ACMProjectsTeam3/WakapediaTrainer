@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup, SoupStrainer
 from MarkovMaker import TrainAndSaveString
-import urllib, os
+import urllib, os, sys
 
 """
 This gets links to wikipedia pages from a category page.
@@ -25,7 +25,7 @@ def scrape_category_page(url, links):
     link = soup.find('a', href=True, text='next page')
     if (link != None and len(links) < 500):
         scrape_category_page('https://en.wikipedia.org' + link['href'], links)
-    
+
 
 """
 This gets the texts in the paragraphs of a webpage.
@@ -33,11 +33,11 @@ Returns a string
 """
 def scrape(url):
       ### opens url so it's like a file
-    try: 
+    try:
         link = urllib.request.urlopen(url)
     except urllib.error.HTTPError:
         return ''
-        
+
     soup = BeautifulSoup(link.read().decode('utf-8'), 'lxml', parse_only=SoupStrainer('p'))
 
     alltxt = ''
@@ -51,30 +51,35 @@ def scrape(url):
 Scripty script
 """
 
+def generate_category_chains():
+    CATEGORIES = set()
+    while (len(CATEGORIES) < 1):
+        #url = urllib.request.urlopen('https://en.wikipedia.org/wiki/Special:Random')
+        url = urllib.request.urlopen('https://en.wikipedia.org/wiki/' + str(sys.argv[1]))
+        soup = BeautifulSoup(url, 'lxml')
 
-CATEGORIES = set()
-while (len(CATEGORIES) < 10): 
-    url = urllib.request.urlopen('https://en.wikipedia.org/wiki/Special:Random')
-    soup = BeautifulSoup(url, 'lxml')
+        #print (soup.title.string)
 
-    print (soup.title.string)
+            ### get categories in the random wiki page
+        for cat in soup.find('div', {'id': 'catlinks'}).find('ul').findAll('li'):
+    	   ### markov chain it if we haven't already
+            if cat.string not in CATEGORIES:
+                cattext = ''
+                links = []
+                scrape_category_page('https://en.wikipedia.org' + cat.find('a')['href'], links)
+                for link in links:
+                    cattext = cattext + "\n" + scrape(link)
+                print (cat.string)
+                if cattext != "":
+                    TrainAndSaveString(cattext, './Categories/' + cat.string + '.mc')
+                #filename = './Categories/' + cat.string + '.txt'
+                #os.makedirs(os.path.dirname(filename), exist_ok=True)
+                #with open(filename, 'w') as file:
+                #    file.write(cattext)
 
-	### get categories in the random wiki page
-    for cat in soup.find('div', {'id': 'catlinks'}).find('ul').findAll('li'):
-	   ### markov chain it if we haven't already
-        if cat.string not in CATEGORIES:
-            cattext = ''
-            links = []
-            scrape_category_page('https://en.wikipedia.org' + cat.find('a')['href'], links)
-            for link in links:
-                cattext = cattext + "\n" + scrape(link)
-            print (cat.string)
-            TrainAndSaveString(cattext, './Categories/' + cat.string + '.mc')
-            #filename = './Categories/' + cat.string + '.txt'
-            #os.makedirs(os.path.dirname(filename), exist_ok=True)
-            #with open(filename, 'w') as file:
-            #    file.write(cattext)
-            
-            CATEGORIES.add(cat.string)
+                CATEGORIES.add(cat.string)
 
-print (CATEGORIES)
+    print (CATEGORIES)
+
+if __name__ == "__main__":
+    generate_category_chains()
